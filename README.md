@@ -56,4 +56,24 @@ The 2025 paper by Li et al. proposes:
 ---
 
 ## 3 | Repository Structure
+.
+├── README.md
+├── LICENSE
+├── matlab/
+│   ├── SparseFIR_CSD_demo.m
+│   ├── coeff_24tap_q15.hex
+│   └── figs/
+│       ├── response_full.png
+│       └── passband_zoom.png
+├── rtl/
+│   ├── fir24_pruned_q15.v
+│   └── fir24_pruned_q15_tb.v
+├── vivado/
+│   ├── create_project.tcl
+│   └── reports/
+│       ├── synthesis_report.txt
+│       └── implementation_report.txt
+└── doc/
+    ├── flowchart_CSD_CSE.png
+    └── paper_annotated.pdf
 
