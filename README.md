@@ -1,54 +1,59 @@
-# Low-Complexity Sparse 2-D FIR Filter  
-*(23 × 23 taps, 40 dB attenuation / 1 % ripple)*
+# Low-Complexity Sparse FIR Filter Design & FPGA Implementation
 
-This repository documents the **end-to-end design and implementation** of a 2-D circular FIR low-pass filter based on the paper:
-
-> **Yi Li, Jiaxiang Zhao, Wei Xu**  
-> *“A novel design algorithm for low-complexity sparse 2-D FIR filters,”*  
-> *Int. J. Circuit Theory & Applications, 2025.*
-
-The work spans:
-
-* **MATLAB** – dense → sparse filter generation, CSD quantisation, frequency-domain visualisation.  
-* **Verilog (Vivado)** – two hardware architectures (dense vs. sparse + CSD + CSE), full synthesis, and utilisation reports.
+> **From** Li et al. (2025) “A Novel Design Algorithm for Low Complexity Sparse 2-D FIR Filters”  
+> **To** 1-D MATLAB prototype → Verilog → Vivado synthesis & resource analysis
 
 ---
 
-## 1. Project Overview
+## Table of Contents
 
-### Objectives
-1. **Reproduce the paper’s algorithm**  
-   * Sparse design → CSD quantisation → Common Sub-Expression Elimination (CSE) → sensitivity-based pruning.
-2. **Visualise frequency response** in MATLAB (3-D surface + radial cross-section).
-3. **Quantise coefficients** (14/16/18-bit CSD) and export to a `.mem` file for HDL.
-4. **Implement two FIR cores** in Verilog:  
-   * `fir_dense.v`  Classic multiply–accumulate (211 taps).  
-   * `fir_sparse_csd_cse.v` Sparse, CSD-encoded, CSE-optimised.
-5. **Measure FPGA resource savings** (adders, LUTs, DSPs) in Vivado 2023.1.
-
----
-
-## 2. Filter Specifications
-
-| Parameter | Value | Purpose |
-|-----------|-------|---------|
-| Pass-band cutoff | \( \omega_p = 0.4\pi \) | Frequencies inside are passed |
-| Stop-band start | \( \omega_s = 0.6\pi \) | Frequencies outside are suppressed |
-| Pass-band ripple | \( \delta_p = 0.01 \) | ±1 % magnitude tolerance |
-| Stop-band attenuation | \( \alpha_s = 40\,\text{dB} \) | ⇒ \( \delta_s = 0.01 \) |
-| Filter size | \( 23 \times 23 \) | Circularly symmetric |
-| Word-lengths | 14 / 16 / 18 bits | CSD coefficient width |
-
-Design constraints
-
-\[
-\begin{cases}
-|H(e^{j\omega_1},e^{j\omega_2})-1|\le \delta_p & \omega_1^2+\omega_2^2 \le \omega_p^2 \\[6pt]
-|H(e^{j\omega_1},e^{j\omega_2})|\le \delta_s & \omega_1^2+\omega_2^2 \ge \omega_s^2
-\end{cases}
-\]
+1. [Project Overview](#project-overview)  
+2. [Original Paper & Motivation](#original-paper--motivation)  
+3. [Repository Structure](#repository-structure)  
+4. [MATLAB Prototype](#matlab-prototype)  
+   - 4.1 [Algorithm Steps](#algorithm-steps)  
+   - 4.2 [Key Parameters](#key-parameters)  
+   - 4.3 [Running the Demo](#running-the-demo)  
+   - 4.4 [Outputs & Plots](#outputs--plots)  
+5. [Verilog & Vivado Implementation](#verilog--vivado-implementation)  
+   - 5.1 [fir24_pruned_q15.v Module](#fir24_pruned_q15v-module)  
+   - 5.2 [Test Bench: fir24_pruned_q15_tb.v](#test-bench-fir24_pruned_q15_tbv)  
+   - 5.3 [Vivado Project & Constraints](#vivado-project--constraints)  
+   - 5.4 [Resource Utilization & Timing](#resource-utilization--timing)  
+6. [Results Summary](#results-summary)  
+7. [How to Reproduce](#how-to-reproduce)  
+8. [Future Work](#future-work)  
+9. [References](#references)  
 
 ---
 
-## 3. Repository Structure
+## 1 | Project Overview
+
+This repository demonstrates a complete workflow:
+
+1. **Distill** the Li et al. sparse-CSE-CSD algorithm for 2-D FIR filters.  
+2. **Implement** a 1-D low-pass FIR prototype in MATLAB, verify specs, measure algorithmic cost.  
+3. **Export** the final 24-tap Q1.15 coefficients.  
+4. **Build** a single-MAC, pipelined FIR in Verilog (`rtl/fir24_pruned_q15.v`) and verify with test bench (`rtl/fir24_pruned_q15_tb.v`).  
+5. **Synthesize** in Vivado and analyze FPGA resource usage and timing.
+
+---
+
+## 2 | Original Paper & Motivation
+
+The 2025 paper by Li et al. proposes:
+
+- **Sparse filter design** via OMP/EIOMP → reduce # of non-zero taps.  
+- **CSD quantisation** → multiplier-less arithmetic using ±1·2⁻ʲ digits.  
+- **CSE + sensitivity-driven selection** → share “weight-two” subexpressions and minimize adder count.
+
+**Motivation for this repo:**
+
+- **Clarity**: validate core ideas on 1-D before full 2-D.  
+- **Hardware realism**: measure real LUT/FF/DSP usage.  
+- **Reproducibility**: share code & scripts for community use.
+
+---
+
+## 3 | Repository Structure
 
