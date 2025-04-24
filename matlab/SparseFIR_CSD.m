@@ -1,50 +1,38 @@
 function SparseFIR_CSD_demo()
-% SparseFIR_CSD_demo
-% ----------------------------------------------------------
-% Prototype of Li et al. (2025) low‑complexity design, adapted
-% to a 1‑D low‑pass FIR filter.  Stages:
-%   1. dense Parks‑McClellan design
-%   2. sparsify by keeping K largest taps
-%   3. CSD quantise + greedy digit‑sensitivity pruning
-%   4. cost & error metrics + plots
-%
-% 2025‑04‑16  (chatGPT sample)
 
-% ---------- user parameters ---------------------------------------------
-N        = 64;       % Filter order (N+1 taps, even)
-K        = 24;       % Target non‑zero taps after sparsification
-B        = 16;       % CSD word‑length (bits)
-omega_p  = 0.4;      % Pass‑band edge  (×pi rad, 0…1)
-omega_s  = 0.6;      % Stop‑band start
-delta_p  = 0.01;     % Pass‑band ripple (abs)
-alpha_s  = 40;       % Stop‑band attenuation (dB)
-delta_s  = 10^(-alpha_s/20);        % Stop‑band ripple
-plotFlag = true;     % Show magnitude responses
-% -------------------------------------------------------------------------
 
-% ---------- 1. dense reference filter -----------------------------------
-F = [0      omega_p   omega_s   1];          % 4 breakpoints
-A = [1      1         0         0];          % desired amplitudes (same length!)
-W = [1      10];                             % band weights  (pass, stop)
-h_dense = firpm(N, F, A, W);                 % length N+1
 
-% ---------- 2. magnitude‑based sparsification ---------------------------
+N        = 64;       
+K        = 24;       
+B        = 16;       
+omega_p  = 0.4;      
+omega_s  = 0.6;      
+delta_p  = 0.01;     
+alpha_s  = 40;       
+delta_s  = 10^(-alpha_s/20);       
+plotFlag = true;     
+
+F = [0      omega_p   omega_s   1];         
+A = [1      1         0         0];          
+W = [1      10];                             
+h_dense = firpm(N, F, A, W);                
+
+
 [~, idx] = sort(abs(h_dense), 'descend');
 mask            = false(size(h_dense));
 mask(idx(1:K))  = true;
 h_sparse        = h_dense .* mask;           % zero weak taps
 
-% ---------- 3. CSD quantise and digit‑prune -----------------------------
-% 3a. CSD coding  ---------------------------------------------------------
-[D, q]  = csd_quantise(h_sparse, B);         % D: K×B digit matrix
-                                            % q: reconstructed coeffs
-% 3b. Greedy sensitivity‑driven digit removal
+
+[D, q]  = csd_quantise(h_sparse, B);         
+                                           
+
 D_opt   = digit_elimination(D, h_sparse, q, F, A, W, ...
                             delta_p, delta_s);
 
-h_opt   = csd2dec(D_opt);                   % final coefficients
+h_opt   = csd2dec(D_opt);                   
 
-% ---------- 4. Metrics ---------------------------------------------------
+
 [m_dense, e_dense] = metrics(h_dense, F, A, W);
 [m_sparse, e_sparse] = metrics(h_sparse, F, A, W);
 [m_opt,   e_opt]   = metrics(h_opt,   F, A, W);
@@ -55,7 +43,7 @@ report('Reference', m_dense, e_dense);
 report('Sparse+Q ', m_sparse, e_sparse);
 report('Proposed  ', m_opt,   e_opt);
 
-% ---------- 5. Plot ------------------------------------------------------
+
 if plotFlag
     figure; hold on;
     [H,f] = freqz(h_dense, 1, 1024);
@@ -68,11 +56,9 @@ if plotFlag
     xlabel('\omega / \pi'); ylabel('|H(e^{j\omega})|');
     grid on; title('Magnitude responses');
 end
-end % ------------------ end main -----------------------------------------
+end 
 
-% ========================================================================
-%                       Helper functions
-% ========================================================================
+
 
 function [D, q] = csd_quantise(h, B)
 % Convert real‑valued vector h to B‑bit CSD digit matrix D (±1/0).
@@ -113,8 +99,7 @@ x = D * pow2.';
 end
 
 function D = digit_elimination(D, h_sparse, q0, F, A, W, dp, ds)
-% Remove least‑sensitive non‑zero digits while specs hold.
-% Sensitivity = squared error increase when digit→0.
+
 B = size(D,2); L = numel(h_sparse);
 digits_idx = find(D);                % linear indices of non‑zeros
 while true
@@ -139,12 +124,11 @@ end
 end
 
 function [met, err] = metrics(h, F, A, W)
-% Return hardware cost proxies and numeric error measures.
+
 NC = nnz(abs(h)>eps);
-% count signed digits
-[~, q] = csd_quantise(h, 16);         % fixed 16‑bit for counting
+
+[~, q] = csd_quantise(h, 16);         
 NB = nnz(q);
-NA = NB - NC;                         % rough: adder per extra digit
 % error metrics
 [H, w]  = freqz(h, 1, 2048);
 mag     = abs(H);
