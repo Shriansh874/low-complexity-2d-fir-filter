@@ -58,7 +58,6 @@ The 2025 paper by Li et al. proposes:
 ## Repository Structure
 
 - **README.md**  
-- **LICENSE**  
 
 - **matlab/**  
   - `SparseFIR_CSD_demo.m`  
