@@ -71,7 +71,6 @@ The 2025 paper by Li et al. proposes:
   - `fir24_pruned_q15_tb.v`  
 
 - **vivado/**  
-  - `create_project.tcl`  
   - **reports/**  
     - `synthesis_report.txt`  
     - `implementation_report.txt`  
