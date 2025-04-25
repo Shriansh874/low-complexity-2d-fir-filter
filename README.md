@@ -21,9 +21,8 @@
    - 5.3 [Vivado Project & Constraints](#vivado-project--constraints)  
    - 5.4 [Resource Utilization & Timing](#resource-utilization--timing)  
 6. [Results Summary](#results-summary)  
-7. [How to Reproduce](#how-to-reproduce)  
-8. [Future Work](#future-work)  
-9. [References](#references)  
+7. [Future Work](#future-work)  
+8. [References](#references)  
 
 ---
 
