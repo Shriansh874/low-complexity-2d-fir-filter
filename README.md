@@ -80,4 +80,4 @@ The 2025 paper by Li et al. proposes:
 
 - **doc/**  
   - `flowchart_CSD_CSE.png`  
-  - `paper_annotated.pdf`  
+  - `report.pdf`  
