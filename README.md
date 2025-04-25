@@ -13,7 +13,6 @@
 4. [MATLAB Prototype](#matlab-prototype)  
    - 4.1 [Algorithm Steps](#algorithm-steps)  
    - 4.2 [Key Parameters](#key-parameters)  
-   - 4.3 [Running the Demo](#running-the-demo)  
    - 4.4 [Outputs & Plots](#outputs--plots)  
 5. [Verilog & Vivado Implementation](#verilog--vivado-implementation)  
    - 5.1 [fir24_pruned_q15.v Module](#fir24_pruned_q15v-module)  
